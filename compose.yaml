@@ -1,0 +1,63 @@
+# https://github.com/docker/awesome-compose
+services:
+  app:
+    build:
+      context: .
+    volumes:
+    - ./:/app
+    - main_vscode_data:/root/.vscode-server
+    # If your application exposes a port, uncomment the following lines and change
+    # the port numbers as needed. The first number is the host port and the second
+    # is the port inside the container.
+    ports:
+    - ":8000/tcp"
+    command:
+    - "-c"
+    - >-
+        tail -f /dev/null
+
+    entrypoint:
+    - /bin/sh
+
+    # The commented out section below is an example of how to define a PostgreSQL
+    # database that your application can use. `depends_on` tells Docker Compose to
+    # start the database before your application. The `db-data` volume persists the
+    # database data between container restarts. The `db-password` secret is used
+    # to set the database password. You must create `db/password.txt` and add
+    # a password of your choosing to it before running `docker compose up`.
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: docker.io/percona/percona-server:8.0
+    volumes:
+    - db-data:/var/lib/mysql
+    environment:
+    - MYSQL_ROOT_PASSWORD=example
+    - MYSQL_USER=example
+    - MYSQL_PASSWORD=example
+    - MYSQL_DATABASE=example
+    healthcheck:
+      test: mysqladmin ping -p$MYSQL_ROOT_PASSWORD -uroot
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 10s
+    ports:
+      - ":3306/tcp"
+
+  redis:
+    image: docker.io/redis:alpine
+    ports:
+    - ":6379/tcp"
+    healthcheck:
+      test: redis-cli ping
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  db-data:
+  main_vscode_data:
+
